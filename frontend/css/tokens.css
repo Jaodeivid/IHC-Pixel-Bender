@@ -1,0 +1,94 @@
+/* Paleta 60-30-10: 60% fondos claros cian · 30% azules profundos · 10% acentos */
+:root {
+  color-scheme: light;
+
+  /* 60% — superficies */
+  --bg: #eff9fc;
+  --surface: #ffffff;
+  --line: #c9e3ec;
+
+  /* 30% — marca (azul / celeste) */
+  --navy: #0a2f4a;
+  --brand: #0a5c9e; /* texto blanco encima: ~7:1 */
+  --brand-hover: #084a80;
+  --brand-active: #063a66;
+  --sky: #8fd8f0;
+  --cyan: #22c3e6; /* solo decorativo, no para texto */
+  --turquoise: #2ec4b6; /* decorativo */
+  --teal: #0a7c89; /* texto sobre blanco: ~5:1 */
+  --teal-soft: #d5f5f0;
+  --cyan-soft: #d8f4fa;
+
+  /* Texto */
+  --ink: #0b2a3d; /* ~14:1 sobre --bg */
+  --muted: #3c5a6c; /* ~7:1 sobre blanco */
+  --on-dark: #ffffff;
+  --on-dark-muted: #ddf4f9;
+
+  /* Variables para poder cambiar de tema */
+  --title: var(--navy); /* títulos y marca como TEXTO */
+  --link: var(--brand); /* azul de marca como TEXTO (links, ojito, ghost) */
+  --input-border: #6f95a8;
+  --placeholder: #4a6a7c;
+  --disabled-bg: #cbd9e0;
+  --disabled-text: #4a6372;
+  --success-solid: #0b7a55;
+  --on-error: #6e130e;
+  --on-success: #064d36;
+  --on-warning: #5c3700;
+
+  /* Semánticos (uso exclusivo) */
+  --success: #0b7a55;
+  --success-bg: #e3f6ee;
+  --error: #b3261e;
+  --error-bg: #fdecea;
+  --warning: #8a5300;
+  --warning-bg: #fff4db;
+
+  /* Escala tipográfica */
+  --font-display: 'Sora', system-ui, sans-serif;
+  --font-body: 'DM Sans', system-ui, sans-serif;
+  --fs-display: clamp(2rem, 4vw, 3rem);
+  --fs-title: 1.75rem;
+  --fs-body: 1rem;
+  --fs-small: 0.875rem;
+
+  --radius: 12px;
+  --focus-ring: 0 0 0 3px var(--surface), 0 0 0 5px var(--link);
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* ---------- Modo oscuro ---------- */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg: #081520;
+  --surface: #0e2233;
+  --line: #1e3a4e;
+
+  --brand: #0f7bc4;
+  --brand-hover: #1690e0;
+  --brand-active: #0c68a8;
+  --link: #6cd0f2;
+  --teal: #3ccfc0;
+  --teal-soft: #0f3a3a;
+  --cyan-soft: #12384a;
+
+  --title: #ffffff;
+  --ink: #e6f3f8;
+  --muted: #9fbaca;
+  --input-border: #4f7388;
+  --placeholder: #7f9dae;
+  --disabled-bg: #1e3a4e;
+  --disabled-text: #7f9aaa;
+
+  --success: #34c48e;
+  --success-bg: #0e2e25;
+  --on-success: #bff0dc;
+  --error: #ff8a80;
+  --error-bg: #3a1a1a;
+  --on-error: #ffd4d0;
+  --warning: #f2b24c;
+  --warning-bg: #33270f;
+  --on-warning: #ffe2a8;
+}
