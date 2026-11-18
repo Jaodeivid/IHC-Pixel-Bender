@@ -1,0 +1,16 @@
+# Sistema operativo
+.DS_Store
+Thumbs.db
+
+# Editores
+.vscode/
+.idea/
+
+# Dependencias y compilados
+node_modules/
+dist/
+
+# Variables de entorno y claves (la clave publicable de config.js sí es pública)
+.env
+.env.*
+*.local
