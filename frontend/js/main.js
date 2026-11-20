@@ -2,13 +2,25 @@ import { estaConfigurado, usoClaveSecreta, vinoDeRecuperacion } from './services
 import { iniciarAuth, auth } from './state.js'
 import { logout } from './services/authService.js'
 import { contarProblemas } from './services/problemasService.js'
+import { obtenerPreferenciasRemotas, guardarPreferenciasRemotas } from './services/perfilService.js'
+import {
+  iniciarPreferencias,
+  alCambiarPreferencias,
+  aplicarPreferenciasRemotas,
+  preferenciasActuales
+} from './utils/theme.js'
 import { iniciarRouter, navegar } from './router.js'
 import { montarLogin } from './screens/login.js'
 import { montarRegister } from './screens/register.js'
 import { montarForgot } from './screens/forgot.js'
 import { montarReset } from './screens/reset.js'
+import { montarProblemas } from './screens/problemas.js'
+import { montarProblema } from './screens/problema.js'
+import { montarConfiguracion } from './screens/configuracion.js'
 
 const app = document.getElementById('app')
+
+iniciarPreferencias()
 
 if (!estaConfigurado) {
   app.innerHTML = `<div class="setup"><h1>Falta conectar Supabase</h1>
@@ -26,11 +38,38 @@ if (!estaConfigurado) {
   contarProblemas().then(({ error, count }) =>
     error
       ? console.warn(
-          "Supabase: no se pudo leer la tabla 'problems'. ¿Ejecutaste schema.sql?",
+          "Supabase: no se pudo leer la tabla 'problems'. ¿Ejecutaste los SQL 01 al 06?",
           error.message
         )
       : console.info(`Supabase conectado ✓ (${count} problemas)`)
   )
+
+  // ---------- Preferencias: del dispositivo a la cuenta y de la cuenta al dispositivo ----------
+  let usuarioSincronizado = null
+  async function sincronizarPreferencias() {
+    const id = auth.user?.id ?? null
+    if (id === usuarioSincronizado) return
+    usuarioSincronizado = id
+    if (!id) return
+    const { data } = await obtenerPreferenciasRemotas(id)
+    const remotas = data?.preferences ?? {}
+    if (Object.keys(remotas).length) aplicarPreferenciasRemotas(remotas)
+    else guardarPreferenciasRemotas(id, preferenciasActuales()) // primera vez: sube las del dispositivo
+  }
+  // setTimeout: no se debe llamar a supabase dentro del callback de onAuthStateChange
+  addEventListener('auth-changed', () => setTimeout(sincronizarPreferencias, 0))
+  sincronizarPreferencias()
+
+  let temporizadorPrefs
+  alCambiarPreferencias(() => {
+    if (!auth.user) return
+    clearTimeout(temporizadorPrefs)
+    temporizadorPrefs = setTimeout(async () => {
+      const { error } = await guardarPreferenciasRemotas(auth.user.id, preferenciasActuales())
+      if (error)
+        console.warn('No se pudieron guardar las preferencias en la cuenta:', error.message)
+    }, 400)
+  })
 
   const cerrarSesion = async () => {
     await logout()
@@ -64,13 +103,10 @@ if (!estaConfigurado) {
         auth: true,
         renderizar: montarReset
       },
-      // Pantalla en blanco: público, para que los visitantes puedan navegar sin cuenta.
-      inicio: {
-        title: 'Inicio',
-        renderizar: (vista) => {
-          vista.innerHTML = `<main class="blank" aria-label="Inicio"></main>`
-        }
-      }
+      // Públicas: los visitantes pueden ver el catálogo sin cuenta.
+      problemas: { title: 'Problemas', renderizar: montarProblemas },
+      problema: { title: 'Problema', navActivo: 'problemas', renderizar: montarProblema },
+      configuracion: { title: 'Configuración', protected: true, renderizar: montarConfiguracion }
     },
     { alCerrarSesion: cerrarSesion }
   )

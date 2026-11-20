@@ -9,11 +9,18 @@
     />
     <title>Codeforces</title>
     <script>
+      // Aplica las preferencias antes de pintar, para evitar parpadeos.
       ;(function () {
         try {
+          var d = document.documentElement.dataset
           var t = localStorage.getItem('tema')
-          if (!t) t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-          document.documentElement.dataset.theme = t
+          if (t !== 'dark' && t !== 'light')
+            t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+          d.theme = t
+          var p = JSON.parse(localStorage.getItem('prefs') || '{}')
+          d.daltonismo = p.daltonismo === 'on' ? 'on' : 'off'
+          d.texto = p.texto || 'normal'
+          d.movimiento = p.movimiento || 'normal'
         } catch (e) {}
       })()
     </script>
@@ -27,6 +34,8 @@
     <link rel="stylesheet" href="css/base.css" />
     <link rel="stylesheet" href="css/components.css" />
     <link rel="stylesheet" href="css/login.css" />
+    <link rel="stylesheet" href="css/accesibilidad.css" />
+    <link rel="stylesheet" href="css/pantallas.css" />
   </head>
   <body>
     <div id="app"></div>
