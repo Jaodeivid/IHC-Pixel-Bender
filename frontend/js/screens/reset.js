@@ -21,12 +21,12 @@ export function montarReset(vista) {
     submitLabel: 'Guardar contraseña nueva',
     loadingLabel: 'Guardando…',
     successLabel: 'Contraseña guardada',
-    links: [{ href: '#/inicio', label: 'Ahora no' }],
+    links: [{ href: '#/problemas', label: 'Ahora no' }],
     validar: (valores) => validar(valores, { password: 'password' }),
     async onSubmit({ password }) {
       const response = await actualizarPassword(password)
       if (response.ok)
-        return { ok: true, message: MENSAJES.resetExitoso, done: () => navegar('inicio') }
+        return { ok: true, message: MENSAJES.resetExitoso, done: () => navegar('problemas') }
       if (response.code === 'same-password')
         return {
           ok: false,

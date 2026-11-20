@@ -73,6 +73,53 @@ export async function actualizarPassword(password) {
   return { ok: false, code: codigosError[error.code] ?? 'unknown' }
 }
 
+// ---------- Configuración de la cuenta ----------
+
+/** Cambia el usuario en `profiles` (lo que usa el login) y en los metadatos (lo que muestra el navbar). */
+export async function cambiarUsername(userId, username) {
+  const nombre = aMinusculas(username)
+  const { data: disponible, error: errorDisponibilidad } = await supabase.rpc(
+    'username_available',
+    { p_username: nombre }
+  )
+  if (errorDisponibilidad) throw errorDisponibilidad
+  if (!disponible) return { ok: false, code: 'username-taken' }
+
+  const { error } = await supabase.from('profiles').update({ username: nombre }).eq('id', userId)
+  if (error) {
+    if (error.code === '23505') return { ok: false, code: 'username-taken' }
+    throw error
+  }
+  await supabase.auth.updateUser({ data: { username: nombre } })
+  return { ok: true }
+}
+
+/** Supabase envía un enlace de confirmación; el correo cambia cuando el usuario lo abre. */
+export async function cambiarEmail(email) {
+  const { error } = await supabase.auth.updateUser(
+    { email: email.trim() },
+    { emailRedirectTo: urlBase() }
+  )
+  if (!error) return { ok: true }
+  if (esNetworkError(error)) throw error
+  const codigosError = {
+    email_exists: 'email-taken',
+    over_email_send_rate_limit: 'rate-limit',
+    over_request_rate_limit: 'rate-limit'
+  }
+  return { ok: false, code: codigosError[error.code] ?? 'unknown' }
+}
+
+/** Pide la contraseña actual antes de cambiarla. */
+export async function cambiarPasswordConActual(email, actual, nueva) {
+  const { error } = await supabase.auth.signInWithPassword({ email, password: actual })
+  if (error) {
+    if (esNetworkError(error)) throw error
+    return { ok: false, code: 'wrong-current' }
+  }
+  return actualizarPassword(nueva)
+}
+
 export const logout = () => supabase.auth.signOut()
 
 /** Avisa cada vez que cambia la sesión (login, logout, recuperación). */

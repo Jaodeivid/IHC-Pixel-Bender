@@ -1,7 +1,7 @@
 import { montarAuthForm } from '../components/authForm.js'
 import { MENSAJES } from '../data/mensajes.js'
 import { login } from '../services/authService.js'
-import { navegar } from '../router.js'
+import { navegar, destinoTrasLogin } from '../router.js'
 
 export function montarLogin(vista, { error = false } = {}) {
   montarAuthForm(vista, {
@@ -34,7 +34,11 @@ export function montarLogin(vista, { error = false } = {}) {
     async onSubmit({ identifier, password }) {
       const response = await login(identifier, password)
       if (response.ok)
-        return { ok: true, message: MENSAJES.loginExitoso, done: () => navegar('inicio') }
+        return {
+          ok: true,
+          message: MENSAJES.loginExitoso,
+          done: () => navegar(destinoTrasLogin()) // Problemas, o la pantalla que intentó abrir
+        }
       if (response.code === 'unconfirmed')
         return { ok: false, message: MENSAJES.correoSinConfirmar }
       return { ok: false, message: MENSAJES.credencialesInvalidas, focus: 'password' }

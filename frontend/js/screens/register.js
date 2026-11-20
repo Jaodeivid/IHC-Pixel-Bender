@@ -2,7 +2,7 @@ import { montarAuthForm } from '../components/authForm.js'
 import { MENSAJES } from '../data/mensajes.js'
 import { register } from '../services/authService.js'
 import { validar } from '../utils/validators.js'
-import { navegar } from '../router.js'
+import { navegar, destinoTrasLogin } from '../router.js'
 
 export function montarRegister(vista) {
   montarAuthForm(vista, {
@@ -46,7 +46,7 @@ export function montarRegister(vista) {
       if (response.ok)
         return response.needsConfirmation
           ? { ok: true, message: MENSAJES.registroConfirmar }
-          : { ok: true, message: MENSAJES.registroExitoso, done: () => navegar('inicio') }
+          : { ok: true, message: MENSAJES.registroExitoso, done: () => navegar(destinoTrasLogin()) }
 
       const fallos = {
         'username-taken': {
