@@ -1,0 +1,58 @@
+/* ---------- Tamaño de texto (todo el CSS usa rem) ---------- */
+:root[data-texto='grande'] {
+  font-size: 112.5%;
+}
+:root[data-texto='muy-grande'] {
+  font-size: 125%;
+}
+
+/* ---------- Reducir animaciones ---------- */
+:root[data-movimiento='reducido'] *,
+:root[data-movimiento='reducido'] *::before,
+:root[data-movimiento='reducido'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+:root[data-movimiento='reducido'] .spinner {
+  animation-duration: 1.6s !important;
+  animation-iteration-count: infinite !important; /* el cargando debe seguir girando */
+}
+
+/* ---------- Paleta para daltonismo (basada en Okabe-Ito) ----------
+   Reemplaza el par verde/rojo por azul/naranja. Los íconos ✓ ✕ ! se mantienen. */
+:root[data-daltonismo='on'] {
+  --success: #0072b2;
+  --success-solid: #0072b2;
+  --success-bg: #e1f0fa;
+  --on-success: #00355a;
+  --error: #b34700;
+  --error-bg: #fdeee3;
+  --on-error: #5c2400;
+  --warning: #7a6000;
+  --warning-bg: #fff6cc;
+  --on-warning: #4d3b00;
+}
+:root[data-theme='dark'][data-daltonismo='on'] {
+  --success: #56b4e9;
+  --success-solid: #0072b2;
+  --success-bg: #0c2a3f;
+  --on-success: #cfeaff;
+  --error: #ff9a52;
+  --error-bg: #3a2010;
+  --on-error: #ffe0cc;
+  --warning: #f0e442;
+  --warning-bg: #332f0a;
+  --on-warning: #fff7b0;
+}
+:root[data-daltonismo='on'] .input[data-valid='true']:focus {
+  box-shadow: 0 0 0 4px rgba(0, 114, 178, 0.3);
+}
+:root[data-daltonismo='on'] .input[aria-invalid='true']:focus {
+  box-shadow: 0 0 0 4px rgba(179, 71, 0, 0.25);
+}
+:root[data-daltonismo='on'] .preview__verdict {
+  color: #00355a;
+  background: #cfeaff;
+}
