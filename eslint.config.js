@@ -15,6 +15,9 @@ export default [
         URLSearchParams: 'readonly',
         Event: 'readonly',
         setTimeout: 'readonly',
+        clearTimeout: 'readonly',
+        localStorage: 'readonly',
+        matchMedia: 'readonly',
         addEventListener: 'readonly'
       }
     },
