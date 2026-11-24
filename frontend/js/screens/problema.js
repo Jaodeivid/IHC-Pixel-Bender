@@ -13,6 +13,52 @@ const letra = (codigo) => codigo.replace(/^\d+/, '')
 
 let transicionPendiente = null
 
+const CLAVE_RUTA = 'rutaGuiada4A'
+
+const leerProgresoRuta = () => {
+  try {
+    const guardado = window.sessionStorage.getItem(CLAVE_RUTA)
+    if (!guardado) return null
+
+    const progreso = JSON.parse(guardado)
+
+    if (
+      !progreso ||
+      !Number.isInteger(progreso.pasoEnunciado) ||
+      !Number.isInteger(progreso.pasoSolucion) ||
+      !['python', 'cpp', 'java'].includes(progreso.lenguaje)
+    ) {
+      return null
+    }
+
+    return {
+      pasoEnunciado:
+        progreso.pasoEnunciado >= 1 && progreso.pasoEnunciado <= 2 ? progreso.pasoEnunciado : 1,
+      pasoSolucion:
+        progreso.pasoSolucion >= 3 && progreso.pasoSolucion <= 5 ? progreso.pasoSolucion : 3,
+      lenguaje: progreso.lenguaje
+    }
+  } catch {
+    return null
+  }
+}
+
+const guardarProgresoRuta = (progreso) => {
+  try {
+    window.sessionStorage.setItem(CLAVE_RUTA, JSON.stringify(progreso))
+  } catch {
+    return
+  }
+}
+
+const limpiarProgresoRuta = () => {
+  try {
+    window.sessionStorage.removeItem(CLAVE_RUTA)
+  } catch {
+    return
+  }
+}
+
 export function montarProblema(vista, { params }) {
   const [codigoCrudo = '', seccionCruda = ''] = params
   const codigo = codigoCrudo.toUpperCase()
@@ -65,11 +111,20 @@ export function montarProblema(vista, { params }) {
     const soluciones = obtenerSolucionesDemostracion(data.code)
     const lenguajeInicial = 'python'
     const solucionInicial = soluciones?.[lenguajeInicial]
-    let lenguajeSeleccionado = lenguajeInicial
     const esProblemaGuiado = data.code.toUpperCase() === '4A'
     const mostrarRuta = esProblemaGuiado && seccion !== 'discusion'
 
-    let pasoActual = seccion === 'solucion' ? 3 : 1
+    const progresoGuardado = esProblemaGuiado ? leerProgresoRuta() : null
+
+    const progresoRuta = progresoGuardado ?? {
+      pasoEnunciado: 1,
+      pasoSolucion: 3,
+      lenguaje: lenguajeInicial
+    }
+
+    let lenguajeSeleccionado = progresoRuta.lenguaje
+
+    let pasoActual = seccion === 'solucion' ? progresoRuta.pasoSolucion : progresoRuta.pasoEnunciado
 
     if (
       mostrarRuta &&
@@ -78,6 +133,25 @@ export function montarProblema(vista, { params }) {
         (seccion === 'solucion' && pasoTransicion >= 3 && pasoTransicion <= 5))
     ) {
       pasoActual = pasoTransicion
+    }
+
+    const guardarEstadoActual = () => {
+      if (!esProblemaGuiado) return
+
+      if (seccion === '') {
+        progresoRuta.pasoEnunciado = pasoActual
+      }
+
+      if (seccion === 'solucion') {
+        progresoRuta.pasoSolucion = pasoActual
+      }
+
+      progresoRuta.lenguaje = lenguajeSeleccionado
+      guardarProgresoRuta(progresoRuta)
+    }
+
+    if (mostrarRuta) {
+      guardarEstadoActual()
     }
 
     const proximamente = (texto) => `
@@ -497,6 +571,7 @@ export function montarProblema(vista, { params }) {
         const solucion = soluciones[selector.value]
         if (!solucion) return
         lenguajeSeleccionado = selector.value
+        guardarEstadoActual()
 
         const tituloCodigo = main.querySelector('#tituloCodigoResuelto')
         const bloque = main.querySelector('#codigoDemostracion')
@@ -514,6 +589,23 @@ export function montarProblema(vista, { params }) {
     }
 
     if (mostrarRuta && pasoActual === 4) {
+      const selector = main.querySelector('#lenguajeDemostracion')
+      const solucion = soluciones?.[lenguajeSeleccionado]
+      const tituloCodigo = main.querySelector('#tituloCodigoResuelto')
+      const bloque = main.querySelector('#codigoDemostracion')
+      const pre = bloque?.closest('pre')
+
+      if (selector) {
+        selector.value = lenguajeSeleccionado
+      }
+
+      if (solucion && tituloCodigo && bloque && pre) {
+        tituloCodigo.textContent = `Solución en ${solucion.nombre}`
+        pre.className = `language-${solucion.prism}`
+        bloque.className = `language-${solucion.prism}`
+        bloque.textContent = solucion.codigo
+      }
+
       window.Prism?.highlightAllUnder(main)
       configurarSelectorLenguaje()
     }
@@ -536,7 +628,17 @@ export function montarProblema(vista, { params }) {
         return
       }
 
+      if (nuevaSeccion === 'solucion') {
+        progresoRuta.pasoSolucion = nuevoPaso
+      } else {
+        progresoRuta.pasoEnunciado = nuevoPaso
+      }
+
+      progresoRuta.lenguaje = lenguajeSeleccionado
+      guardarProgresoRuta(progresoRuta)
+
       pasoActual = nuevoPaso
+      guardarEstadoActual()
 
       const articulo = main.querySelector('.problema__contenido')
 
@@ -603,6 +705,7 @@ export function montarProblema(vista, { params }) {
       }
 
       if (accion === 'finalizar' || accion === 'salir') {
+        limpiarProgresoRuta()
         transicionPendiente = null
         window.location.hash = '#/problemas'
       }
