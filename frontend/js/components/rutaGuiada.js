@@ -73,7 +73,7 @@ export function crearRutaGuiada(numeroPaso = 1) {
           class="btn btn--sm"
           type="button"
           data-ruta-accion="siguiente"
-          ${paso.numero >= 3 ? 'disabled' : ''}
+          ${paso.numero >= 4 ? 'disabled' : ''}
         >
           Siguiente paso
         </button>

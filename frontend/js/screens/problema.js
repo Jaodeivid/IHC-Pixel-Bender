@@ -69,7 +69,8 @@ export function montarProblema(vista, { params }) {
     if (
       mostrarRuta &&
       pasoTransicion !== null &&
-      ((seccion === '' && pasoTransicion <= 2) || (seccion === 'solucion' && pasoTransicion === 3))
+      ((seccion === '' && pasoTransicion <= 2) ||
+        (seccion === 'solucion' && pasoTransicion >= 3 && pasoTransicion <= 4))
     ) {
       pasoActual = pasoTransicion
     }
@@ -209,12 +210,67 @@ export function montarProblema(vista, { params }) {
         </p>
       </section>`
 
+    const contenidoImplementar = `
+      <h1 class="problema__titulo">${titulo}</h1>
+      <h2 class="problema__h2">Implementar</h2>
+      <p class="problema__texto">
+        Ahora observaremos cómo se traduce la condición diseñada
+        a una solución en Python 3.
+      </p>
+
+      <section class="ejemplo" aria-label="Código resuelto en Python 3">
+        <h3 class="ejemplo__titulo">Solución en Python 3</h3>
+        <pre><code>w = int(input())
+
+    if w > 2 and w % 2 == 0:
+        print("YES")
+    else:
+        print("NO")</code></pre>
+        <p class="ejemplo__exp">
+          Este código es únicamente de lectura.
+          La solución ya está preparada como parte de la demostración.
+        </p>
+      </section>
+
+      <section class="ejemplo" aria-label="Explicación del código">
+        <h3 class="ejemplo__titulo">¿Cómo funciona?</h3>
+        <p class="ejemplo__exp">
+          Primero se lee el peso de la sandía.
+          Después se comprueba que sea mayor que 2 y que sea par.
+          Si ambas condiciones se cumplen, se muestra YES.
+          En caso contrario, se muestra NO.
+        </p>
+      </section>
+
+      <section class="ejemplo" aria-label="Prueba de ejemplo">
+        <h3 class="ejemplo__titulo">Prueba de ejemplo</h3>
+        <div class="ejemplo__par">
+          <div>
+            <span class="ejemplo__et">Entrada</span>
+            <pre>8</pre>
+          </div>
+          <div>
+            <span class="ejemplo__et">Salida</span>
+            <pre>YES</pre>
+          </div>
+        </div>
+        <p class="ejemplo__exp">
+          Como 8 es par y mayor que 2, la respuesta es YES.
+        </p>
+      </section>
+
+      <p class="problema__texto">
+        La solución está lista para la demostración del envío al juez,
+        que se implementará en el siguiente paso.
+      </p>`
+
     const contenidoSolucion = esProblemaGuiado
-      ? contenidoDisenar
+      ? pasoActual === 4
+        ? contenidoImplementar
+        : contenidoDisenar
       : `
         <h1 class="problema__titulo">Solución explicada</h1>
         ${proximamente('La demostración de la solución estará disponible próximamente.')}`
-
     const contenido = {
       '': esProblemaGuiado && pasoActual === 2 ? contenidoEntender : contenidoEnunciado,
       solucion: contenidoSolucion,
@@ -291,9 +347,9 @@ export function montarProblema(vista, { params }) {
     if (!mostrarRuta) return
 
     const actualizarPaso = (nuevoPaso) => {
-      if (nuevoPaso < 1 || nuevoPaso > 3 || !main.isConnected) return
+      if (nuevoPaso < 1 || nuevoPaso > 4 || !main.isConnected) return
 
-      const nuevaSeccion = nuevoPaso === 3 ? 'solucion' : ''
+      const nuevaSeccion = nuevoPaso >= 3 ? 'solucion' : ''
 
       if (nuevaSeccion !== seccion) {
         transicionPendiente = {
@@ -312,6 +368,8 @@ export function montarProblema(vista, { params }) {
 
       if (seccion === '') {
         articulo.innerHTML = pasoActual === 1 ? contenidoEnunciado : contenidoEntender
+      } else if (seccion === 'solucion') {
+        articulo.innerHTML = pasoActual === 3 ? contenidoDisenar : contenidoImplementar
       }
 
       const panelAnterior = main.querySelector('.ruta-guiada')
