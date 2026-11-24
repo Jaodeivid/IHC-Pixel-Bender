@@ -65,6 +65,7 @@ export function montarProblema(vista, { params }) {
     const soluciones = obtenerSolucionesDemostracion(data.code)
     const lenguajeInicial = 'python'
     const solucionInicial = soluciones?.[lenguajeInicial]
+    let lenguajeSeleccionado = lenguajeInicial
     const esProblemaGuiado = data.code.toUpperCase() === '4A'
     const mostrarRuta = esProblemaGuiado && seccion !== 'discusion'
 
@@ -74,7 +75,7 @@ export function montarProblema(vista, { params }) {
       mostrarRuta &&
       pasoTransicion !== null &&
       ((seccion === '' && pasoTransicion <= 2) ||
-        (seccion === 'solucion' && pasoTransicion >= 3 && pasoTransicion <= 4))
+        (seccion === 'solucion' && pasoTransicion >= 3 && pasoTransicion <= 5))
     ) {
       pasoActual = pasoTransicion
     }
@@ -219,7 +220,7 @@ export function montarProblema(vista, { params }) {
         <h2 class="problema__h2">Implementar</h2>
         <p class="problema__texto">
           Ahora observaremos cómo se traduce la condición diseñada
-          a una solución en Python 3.
+          a una solución en el lenguaje de programación seleccionado.
         </p>
 
         <section class="ejemplo" aria-label="Código resuelto">
@@ -271,14 +272,144 @@ export function montarProblema(vista, { params }) {
       </section>
 
       <p class="problema__texto">
-        La solución está lista para la demostración del envío al juez,
-        que se implementará en el siguiente paso.
+        La solución está preparada. Pulsa «Enviar al juez» en la ruta
+        guiada para observar la evaluación simulada y su veredicto.
       </p>`
 
+    const crearContenidoVeredicto = () => {
+      const solucion = soluciones?.[lenguajeSeleccionado] ?? solucionInicial
+      const nombreLenguaje = escaparHtml(solucion?.nombre ?? 'Python 3')
+
+      return `
+        <h1 class="problema__titulo">${titulo}</h1>
+        <h2 class="problema__h2">Veredicto del juez</h2>
+
+        <p class="problema__texto">
+          La solución preparada fue enviada a un juez simulado.
+          A continuación puedes observar el resultado de la evaluación.
+        </p>
+
+        <section class="ejemplo veredicto-aceptado" aria-label="Resultado de la evaluación">
+          <div class="veredicto-aceptado__contenido">
+            <svg
+              class="veredicto-aceptado__icono"
+              xmlns="http://www.w3.org/2000/svg"
+              width="32"
+              height="32"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+            >
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="m8 12 3 3 5-6"></path>
+            </svg>
+
+            <div>
+              <h3 class="veredicto-aceptado__titulo">Aceptado</h3>
+              <p class="ejemplo__exp">
+                La solución superó todas las pruebas de la demostración.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        <section class="ejemplo" aria-label="Detalles del envío simulado">
+          <h3 class="ejemplo__titulo">Detalles del envío</h3>
+          <dl class="lateral__datos">
+            <div>
+              <dt>Número de envío</dt>
+              <dd>#1042</dd>
+            </div>
+            <div>
+              <dt>Problema</dt>
+              <dd>${titulo}</dd>
+            </div>
+            <div>
+              <dt>Lenguaje</dt>
+              <dd>${nombreLenguaje}</dd>
+            </div>
+            <div>
+              <dt>Estado</dt>
+              <dd>Aceptado</dd>
+            </div>
+            <div>
+              <dt>Tiempo</dt>
+              <dd>46 ms</dd>
+            </div>
+            <div>
+              <dt>Memoria</dt>
+              <dd>4 KB</dd>
+            </div>
+          </dl>
+        </section>
+
+        <section class="ejemplo" aria-label="Resultados de las pruebas simuladas">
+          <h3 class="ejemplo__titulo">Resultados de las pruebas</h3>
+
+          <div class="resultados-pruebas__contenedor" role="region" aria-label="Tabla de resultados de las pruebas" tabindex="0">
+            <table class="resultados-pruebas__tabla">
+              <thead>
+                <tr>
+                  <th scope="col">Prueba</th>
+                  <th scope="col">Entrada</th>
+                  <th scope="col">Esperada</th>
+                  <th scope="col">Obtenida</th>
+                  <th scope="col">Estado</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <th scope="row">Ejemplo</th>
+                  <td><code>8</code></td>
+                  <td><code>YES</code></td>
+                  <td><code>YES</code></td>
+                  <td>
+                    <span class="resultados-pruebas__estado">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="m8 12 3 3 5-6"></path>
+                      </svg>
+                      Aceptado
+                    </span>
+                  </td>
+                </tr>
+                <tr>
+                  <th scope="row">Caso límite</th>
+                  <td><code>2</code></td>
+                  <td><code>NO</code></td>
+                  <td><code>NO</code></td>
+                  <td>
+                    <span class="resultados-pruebas__estado">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="m8 12 3 3 5-6"></path>
+                      </svg>
+                      Aceptado
+                    </span>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="resultados-pruebas__nota">
+            Esta evaluación es una simulación educativa.
+            No se ejecutó código ni se realizó un envío real.
+          </p>
+        </section>
+      `
+    }
+
     const contenidoSolucion = esProblemaGuiado
-      ? pasoActual === 4
-        ? contenidoImplementar
-        : contenidoDisenar
+      ? pasoActual === 5
+        ? crearContenidoVeredicto()
+        : pasoActual === 4
+          ? contenidoImplementar
+          : contenidoDisenar
       : `
         <h1 class="problema__titulo">Solución explicada</h1>
         ${proximamente('La demostración de la solución estará disponible próximamente.')}`
@@ -347,7 +478,10 @@ export function montarProblema(vista, { params }) {
               </div>
             </dl>
 
-            <p class="lateral__nota">Enviar soluciones estará disponible pronto.</p>
+            <p class="lateral__nota">
+              El envío real de soluciones no está disponible.
+              Puedes observar una simulación mediante la ruta guiada.
+            </p>
             <a class="btn btn--sm btn--ghost" href="#/problemas">Volver a problemas</a>
           </aside>
 
@@ -362,6 +496,7 @@ export function montarProblema(vista, { params }) {
       selector.addEventListener('change', () => {
         const solucion = soluciones[selector.value]
         if (!solucion) return
+        lenguajeSeleccionado = selector.value
 
         const tituloCodigo = main.querySelector('#tituloCodigoResuelto')
         const bloque = main.querySelector('#codigoDemostracion')
@@ -386,7 +521,7 @@ export function montarProblema(vista, { params }) {
     if (!mostrarRuta) return
 
     const actualizarPaso = (nuevoPaso) => {
-      if (nuevoPaso < 1 || nuevoPaso > 4 || !main.isConnected) return
+      if (nuevoPaso < 1 || nuevoPaso > 5 || !main.isConnected) return
 
       const nuevaSeccion = nuevoPaso >= 3 ? 'solucion' : ''
 
@@ -408,9 +543,32 @@ export function montarProblema(vista, { params }) {
       if (seccion === '') {
         articulo.innerHTML = pasoActual === 1 ? contenidoEnunciado : contenidoEntender
       } else if (seccion === 'solucion') {
-        articulo.innerHTML = pasoActual === 3 ? contenidoDisenar : contenidoImplementar
+        articulo.innerHTML =
+          pasoActual === 3
+            ? contenidoDisenar
+            : pasoActual === 4
+              ? contenidoImplementar
+              : crearContenidoVeredicto()
 
         if (pasoActual === 4) {
+          const selector = articulo.querySelector('#lenguajeDemostracion')
+
+          if (selector) {
+            selector.value = lenguajeSeleccionado
+          }
+
+          const solucion = soluciones?.[lenguajeSeleccionado]
+          const tituloCodigo = articulo.querySelector('#tituloCodigoResuelto')
+          const bloque = articulo.querySelector('#codigoDemostracion')
+          const pre = bloque?.closest('pre')
+
+          if (solucion && tituloCodigo && bloque && pre) {
+            tituloCodigo.textContent = `Solución en ${solucion.nombre}`
+            pre.className = `language-${solucion.prism}`
+            bloque.className = `language-${solucion.prism}`
+            bloque.textContent = solucion.codigo
+          }
+
           window.Prism?.highlightAllUnder(articulo)
           configurarSelectorLenguaje()
         }
@@ -431,13 +589,20 @@ export function montarProblema(vista, { params }) {
 
       if (accion === 'anterior') {
         actualizarPaso(pasoActual - 1)
+        return
       }
 
-      if (accion === 'siguiente') {
+      if (accion === 'siguiente' && pasoActual < 4) {
         actualizarPaso(pasoActual + 1)
+        return
       }
 
-      if (accion === 'salir') {
+      if (accion === 'enviar' && pasoActual === 4) {
+        actualizarPaso(5)
+        return
+      }
+
+      if (accion === 'finalizar' || accion === 'salir') {
         transicionPendiente = null
         window.location.hash = '#/problemas'
       }

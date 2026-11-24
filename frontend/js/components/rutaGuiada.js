@@ -20,20 +20,26 @@ const PASOS = [
   {
     numero: 4,
     titulo: 'Implementar',
-    descripcion: 'Observa cómo se traduce la condición a código Python.',
-    indicacion: 'Revisa el código resuelto y su prueba de ejemplo.'
+    descripcion: 'Observa cómo se traduce la condición al lenguaje seleccionado.',
+    indicacion: 'Revisa el código resuelto antes de simular su envío al juez.'
   },
   {
     numero: 5,
     titulo: 'Enviar al juez',
-    descripcion: 'Revisa la solución preparada para su envío.',
-    indicacion: 'El envío y el veredicto se implementarán posteriormente.'
+    descripcion:
+      'El envío simulado ha sido evaluado. Revisa el veredicto y los resultados de las pruebas.',
+    indicacion: 'Has completado los cinco pasos de la demostración.'
   }
 ]
 
 export function crearRutaGuiada(numeroPaso = 1) {
   const paso = PASOS.find((elemento) => elemento.numero === numeroPaso) ?? PASOS[0]
   const porcentaje = (paso.numero / PASOS.length) * 100
+
+  const textoAccion =
+    paso.numero === 4 ? 'Enviar al juez' : paso.numero === 5 ? 'Finalizar ruta' : 'Siguiente paso'
+
+  const accion = paso.numero === 4 ? 'enviar' : paso.numero === 5 ? 'finalizar' : 'siguiente'
 
   return `
     <section class="ruta-guiada" aria-label="Ruta de tu primer problema">
@@ -72,20 +78,25 @@ export function crearRutaGuiada(numeroPaso = 1) {
         <button
           class="btn btn--sm"
           type="button"
-          data-ruta-accion="siguiente"
-          ${paso.numero >= 4 ? 'disabled' : ''}
+          data-ruta-accion="${accion}"
         >
-          Siguiente paso
+          ${textoAccion}
         </button>
       </div>
 
-      <button
-        class="ruta-guiada__salir"
-        type="button"
-        data-ruta-accion="salir"
-      >
-        Salir de la ruta
-      </button>
+      ${
+        paso.numero < 5
+          ? `
+            <button
+                class="ruta-guiada__salir"
+                type="button"
+                data-ruta-accion="salir"
+            >
+                Salir de la ruta
+            </button>
+            `
+          : ''
+      }
     </section>
   `
 }
