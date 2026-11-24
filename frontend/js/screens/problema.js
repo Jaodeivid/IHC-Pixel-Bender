@@ -74,6 +74,14 @@ export function montarProblema(vista, { params }) {
     ) {
       pasoActual = pasoTransicion
     }
+    const codigoPython = [
+      'w = int(input())',
+      '',
+      'if w > 2 and w % 2 == 0:',
+      '    print("YES")',
+      'else:',
+      '    print("NO")'
+    ].join('\n')
 
     const proximamente = (texto) => `
       <div class="banner banner--warning">
@@ -211,26 +219,21 @@ export function montarProblema(vista, { params }) {
       </section>`
 
     const contenidoImplementar = `
-      <h1 class="problema__titulo">${titulo}</h1>
-      <h2 class="problema__h2">Implementar</h2>
-      <p class="problema__texto">
-        Ahora observaremos cómo se traduce la condición diseñada
-        a una solución en Python 3.
-      </p>
-
-      <section class="ejemplo" aria-label="Código resuelto en Python 3">
-        <h3 class="ejemplo__titulo">Solución en Python 3</h3>
-        <pre><code>w = int(input())
-
-    if w > 2 and w % 2 == 0:
-        print("YES")
-    else:
-        print("NO")</code></pre>
-        <p class="ejemplo__exp">
-          Este código es únicamente de lectura.
-          La solución ya está preparada como parte de la demostración.
+        <h1 class="problema__titulo">${titulo}</h1>
+        <h2 class="problema__h2">Implementar</h2>
+        <p class="problema__texto">
+          Ahora observaremos cómo se traduce la condición diseñada
+          a una solución en Python 3.
         </p>
-      </section>
+
+        <section class="ejemplo" aria-label="Código resuelto en Python 3">
+          <h3 class="ejemplo__titulo">Solución en Python 3</h3>
+          <pre class="language-python"><code class="language-python">${escaparHtml(codigoPython)}</code></pre>
+          <p class="ejemplo__exp">
+            Este código es únicamente de lectura.
+            La solución ya está preparada como parte de la demostración.
+          </p>
+        </section>
 
       <section class="ejemplo" aria-label="Explicación del código">
         <h3 class="ejemplo__titulo">¿Cómo funciona?</h3>
@@ -344,6 +347,10 @@ export function montarProblema(vista, { params }) {
         </div>
       </div>`
 
+    if (mostrarRuta && pasoActual === 4) {
+      window.Prism?.highlightAllUnder(main)
+    }
+
     if (!mostrarRuta) return
 
     const actualizarPaso = (nuevoPaso) => {
@@ -370,6 +377,10 @@ export function montarProblema(vista, { params }) {
         articulo.innerHTML = pasoActual === 1 ? contenidoEnunciado : contenidoEntender
       } else if (seccion === 'solucion') {
         articulo.innerHTML = pasoActual === 3 ? contenidoDisenar : contenidoImplementar
+
+        if (pasoActual === 4) {
+          window.Prism?.highlightAllUnder(articulo)
+        }
       }
 
       const panelAnterior = main.querySelector('.ruta-guiada')
