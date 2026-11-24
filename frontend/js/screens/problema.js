@@ -1,6 +1,7 @@
 import { obtenerProblema } from '../services/problemasService.js'
 import { escaparHtml } from '../utils/escape.js'
 import { crearRutaGuiada } from '../components/rutaGuiada.js'
+import { obtenerSolucionesDemostracion } from '../data/solucionesDemostracion.js'
 
 const TABS = [
   { id: '', etiqueta: 'Enunciado' },
@@ -61,6 +62,9 @@ export function montarProblema(vista, { params }) {
     const etiquetas = (data.problem_tags ?? []).map((pt) => pt.tags).filter(Boolean)
     const ejemplos = [...(data.problem_examples ?? [])].sort((a, b) => a.position - b.position)
     const titulo = `${escaparHtml(letra(data.code))}. ${escaparHtml(data.title)}`
+    const soluciones = obtenerSolucionesDemostracion(data.code)
+    const lenguajeInicial = 'python'
+    const solucionInicial = soluciones?.[lenguajeInicial]
     const esProblemaGuiado = data.code.toUpperCase() === '4A'
     const mostrarRuta = esProblemaGuiado && seccion !== 'discusion'
 
@@ -226,9 +230,21 @@ export function montarProblema(vista, { params }) {
           a una solución en Python 3.
         </p>
 
-        <section class="ejemplo" aria-label="Código resuelto en Python 3">
-          <h3 class="ejemplo__titulo">Solución en Python 3</h3>
-          <pre class="language-python"><code class="language-python">${escaparHtml(codigoPython)}</code></pre>
+        <section class="ejemplo" aria-label="Código resuelto">
+          <div class="codigo-resuelto__cabecera">
+            <h3 class="ejemplo__titulo" id="tituloCodigoResuelto">
+              Solución en ${solucionInicial?.nombre ?? 'Python 3'}
+            </h3>
+            <label class="codigo-resuelto__selector">
+              <span>Lenguaje</span>
+              <select id="lenguajeDemostracion">
+                <option value="python">Python</option>
+                <option value="cpp">C++</option>
+                <option value="java">Java</option>
+              </select>
+            </label>
+          </div>
+          <pre class="language-${solucionInicial?.prism ?? 'python'}"><code id="codigoDemostracion" class="language-${solucionInicial?.prism ?? 'python'}">${escaparHtml(solucionInicial?.codigo ?? '')}</code></pre>
           <p class="ejemplo__exp">
             Este código es únicamente de lectura.
             La solución ya está preparada como parte de la demostración.
@@ -347,8 +363,32 @@ export function montarProblema(vista, { params }) {
         </div>
       </div>`
 
+    const configurarSelectorLenguaje = () => {
+      const selector = main.querySelector('#lenguajeDemostracion')
+      if (!selector || !soluciones) return
+
+      selector.addEventListener('change', () => {
+        const solucion = soluciones[selector.value]
+        if (!solucion) return
+
+        const tituloCodigo = main.querySelector('#tituloCodigoResuelto')
+        const bloque = main.querySelector('#codigoDemostracion')
+        const pre = bloque?.closest('pre')
+
+        if (!tituloCodigo || !bloque || !pre) return
+
+        tituloCodigo.textContent = `Solución en ${solucion.nombre}`
+        pre.className = `language-${solucion.prism}`
+        bloque.className = `language-${solucion.prism}`
+        bloque.textContent = solucion.codigo
+
+        window.Prism?.highlightElement(bloque)
+      })
+    }
+
     if (mostrarRuta && pasoActual === 4) {
       window.Prism?.highlightAllUnder(main)
+      configurarSelectorLenguaje()
     }
 
     if (!mostrarRuta) return
@@ -380,6 +420,7 @@ export function montarProblema(vista, { params }) {
 
         if (pasoActual === 4) {
           window.Prism?.highlightAllUnder(articulo)
+          configurarSelectorLenguaje()
         }
       }
 

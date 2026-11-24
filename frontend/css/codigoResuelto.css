@@ -43,3 +43,112 @@
 .problema__contenido pre.language-python .token.operator {
   color: #ff7b72;
 }
+
+
+.codigo-resuelto__cabecera {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.codigo-resuelto__cabecera .ejemplo__titulo {
+  margin: 0;
+}
+
+.codigo-resuelto__selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--muted);
+  font-size: var(--fs-small);
+}
+
+.codigo-resuelto__selector select {
+  min-width: 120px;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--title);
+  font: inherit;
+  cursor: pointer;
+}
+
+.codigo-resuelto__selector select:focus-visible {
+  outline: 2px solid var(--teal);
+  outline-offset: 2px;
+}
+
+.problema__contenido pre.language-cpp,
+.problema__contenido pre.language-java {
+  margin: 12px 0;
+  padding: 16px;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #0d1117;
+}
+
+@media (max-width: 520px) {
+  .codigo-resuelto__cabecera {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .codigo-resuelto__selector,
+  .codigo-resuelto__selector select {
+    width: 100%;
+  }
+}
+
+.codigo-resuelto__cabecera,
+.codigo-resuelto__selector,
+.problema__contenido,
+.problema__layout,
+.problema__laterales,
+.ejemplo {
+  min-width: 0;
+}
+
+.problema__contenido pre[class*='language-'] {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.problema__contenido pre[class*='language-'] code {
+  white-space: pre;
+}
+
+@media (max-width: 860px) {
+  .problema__layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .problema__laterales {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 520px) {
+  .codigo-resuelto__cabecera {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .codigo-resuelto__selector {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .codigo-resuelto__selector select {
+    width: 100%;
+    max-width: 100%;
+  }
+}
