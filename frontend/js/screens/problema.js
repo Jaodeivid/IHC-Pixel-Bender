@@ -10,10 +10,18 @@ const TABS = [
 
 const letra = (codigo) => codigo.replace(/^\d+/, '')
 
+let transicionPendiente = null
+
 export function montarProblema(vista, { params }) {
   const [codigoCrudo = '', seccionCruda = ''] = params
   const codigo = codigoCrudo.toUpperCase()
   const seccion = TABS.some((t) => t.id === seccionCruda) ? seccionCruda : ''
+  const pasoTransicion =
+    transicionPendiente?.codigo === codigo && transicionPendiente?.seccion === seccion
+      ? transicionPendiente.paso
+      : null
+
+  transicionPendiente = null
 
   vista.innerHTML = `<main class="problema"><p class="field__msg">Cargando problema…</p></main>`
   const main = vista.querySelector('main')
@@ -55,7 +63,16 @@ export function montarProblema(vista, { params }) {
     const titulo = `${escaparHtml(letra(data.code))}. ${escaparHtml(data.title)}`
     const esProblemaGuiado = data.code.toUpperCase() === '4A'
     const mostrarRuta = esProblemaGuiado && seccion !== 'discusion'
-    let pasoActual = 1
+
+    let pasoActual = seccion === 'solucion' ? 3 : 1
+
+    if (
+      mostrarRuta &&
+      pasoTransicion !== null &&
+      ((seccion === '' && pasoTransicion <= 2) || (seccion === 'solucion' && pasoTransicion === 3))
+    ) {
+      pasoActual = pasoTransicion
+    }
 
     const proximamente = (texto) => `
       <div class="banner banner--warning">
@@ -143,11 +160,64 @@ export function montarProblema(vista, { params }) {
         corresponde mostrar YES o NO.
       </p>`
 
-    const contenido = {
-      '': contenidoEnunciado,
-      solucion: `
+    const contenidoDisenar = `
+      <h1 class="problema__titulo">${titulo}</h1>
+      <h2 class="problema__h2">Diseñar la solución</h2>
+      <p class="problema__texto">
+        Definimos la estrategia para resolver el problema antes de programar.
+      </p>
+
+      <section class="ejemplo" aria-label="Estrategia de solución">
+        <h3 class="ejemplo__titulo">Estrategia</h3>
+        <p class="ejemplo__exp">
+          Verificar si el peso de la sandía puede dividirse en dos partes
+          enteras, positivas y pares.
+        </p>
+      </section>
+
+      <section class="ejemplo" aria-label="Condición de solución">
+        <h3 class="ejemplo__titulo">Condición</h3>
+        <p class="ejemplo__exp">
+          La división es posible si el peso es mayor que 2 y es un número par.
+        </p>
+        <pre>w &gt; 2 y w % 2 == 0</pre>
+      </section>
+
+      <section class="ejemplo" aria-label="Resultado de solución">
+        <h3 class="ejemplo__titulo">Resultado</h3>
+        <p class="ejemplo__exp">
+          Si se cumple la condición, la respuesta es YES.
+          En caso contrario, la respuesta es NO.
+        </p>
+      </section>
+
+      <section class="ejemplo" aria-label="Ejemplos de aplicación">
+        <h3 class="ejemplo__titulo">Ejemplos de aplicación</h3>
+        <div class="ejemplo__par">
+          <div>
+            <span class="ejemplo__et">w = 8</span>
+            <pre>YES</pre>
+          </div>
+          <div>
+            <span class="ejemplo__et">w = 2</span>
+            <pre>NO</pre>
+          </div>
+        </div>
+        <p class="ejemplo__exp">
+          Con 8 kg es posible formar dos partes pares positivas.
+          Con 2 kg no es posible.
+        </p>
+      </section>`
+
+    const contenidoSolucion = esProblemaGuiado
+      ? contenidoDisenar
+      : `
         <h1 class="problema__titulo">Solución explicada</h1>
-        ${proximamente('La demostración de la solución estará disponible en los siguientes pasos.')}`,
+        ${proximamente('La demostración de la solución estará disponible próximamente.')}`
+
+    const contenido = {
+      '': esProblemaGuiado && pasoActual === 2 ? contenidoEntender : contenidoEnunciado,
+      solucion: contenidoSolucion,
       discusion: `
         <h1 class="problema__titulo">Discusión</h1>
         ${proximamente('Aquí podrás comentar el problema con otros usuarios.')}`
@@ -221,16 +291,31 @@ export function montarProblema(vista, { params }) {
     if (!mostrarRuta) return
 
     const actualizarPaso = (nuevoPaso) => {
-      if (nuevoPaso < 1 || nuevoPaso > 2 || !main.isConnected) return
+      if (nuevoPaso < 1 || nuevoPaso > 3 || !main.isConnected) return
+
+      const nuevaSeccion = nuevoPaso === 3 ? 'solucion' : ''
+
+      if (nuevaSeccion !== seccion) {
+        transicionPendiente = {
+          codigo,
+          seccion: nuevaSeccion,
+          paso: nuevoPaso
+        }
+
+        window.location.hash = `${base}${nuevaSeccion ? '/' + nuevaSeccion : ''}`
+        return
+      }
 
       pasoActual = nuevoPaso
 
+      const articulo = main.querySelector('.problema__contenido')
+
       if (seccion === '') {
-        const articulo = main.querySelector('.problema__contenido')
         articulo.innerHTML = pasoActual === 1 ? contenidoEnunciado : contenidoEntender
       }
 
       const panelAnterior = main.querySelector('.ruta-guiada')
+
       if (panelAnterior) {
         panelAnterior.outerHTML = crearRutaGuiada(pasoActual)
       }
@@ -251,6 +336,7 @@ export function montarProblema(vista, { params }) {
       }
 
       if (accion === 'salir') {
+        transicionPendiente = null
         window.location.hash = '#/problemas'
       }
     })

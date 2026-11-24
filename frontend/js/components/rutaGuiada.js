@@ -15,7 +15,7 @@ const PASOS = [
     numero: 3,
     titulo: 'Diseñar la solución',
     descripcion: 'Define la estrategia y la condición que resuelve el problema.',
-    indicacion: 'Prepara el algoritmo antes de observar su implementación.'
+    indicacion: 'Observa cómo aplicar la condición antes de implementar.'
   },
   {
     numero: 4,
@@ -73,7 +73,7 @@ export function crearRutaGuiada(numeroPaso = 1) {
           class="btn btn--sm"
           type="button"
           data-ruta-accion="siguiente"
-          ${paso.numero >= 2 ? 'disabled' : ''}
+          ${paso.numero >= 3 ? 'disabled' : ''}
         >
           Siguiente paso
         </button>
