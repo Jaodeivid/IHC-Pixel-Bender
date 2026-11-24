@@ -61,15 +61,29 @@ export function crearRutaGuiada(numeroPaso = 1) {
       <p class="ruta-guiada__indicacion">${paso.indicacion}</p>
 
       <div class="ruta-guiada__acciones">
-        <button class="btn btn--sm btn--ghost" type="button" disabled>
+        <button
+          class="btn btn--sm btn--ghost"
+          type="button"
+          data-ruta-accion="anterior"
+          ${paso.numero === 1 ? 'disabled' : ''}
+        >
           Atrás
         </button>
-        <button class="btn btn--sm" type="button" disabled>
+        <button
+          class="btn btn--sm"
+          type="button"
+          data-ruta-accion="siguiente"
+          ${paso.numero >= 2 ? 'disabled' : ''}
+        >
           Siguiente paso
         </button>
       </div>
 
-      <button class="ruta-guiada__salir" type="button" disabled>
+      <button
+        class="ruta-guiada__salir"
+        type="button"
+        data-ruta-accion="salir"
+      >
         Salir de la ruta
       </button>
     </section>
