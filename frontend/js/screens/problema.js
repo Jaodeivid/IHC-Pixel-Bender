@@ -2,6 +2,7 @@ import { obtenerProblema } from '../services/problemasService.js'
 import { escaparHtml } from '../utils/escape.js'
 import { crearRutaGuiada } from '../components/rutaGuiada.js'
 import { obtenerSolucionesDemostracion } from '../data/solucionesDemostracion.js'
+import { obtenerContenidoEstatico, renderizarPasoEstatico } from '../data/problemasContenidoEstatico.js'
 
 const TABS = [
   { id: '', etiqueta: 'Enunciado' },
@@ -13,11 +14,11 @@ const letra = (codigo) => codigo.replace(/^\d+/, '')
 
 let transicionPendiente = null
 
-const CLAVE_RUTA = 'rutaGuiada4A'
+const CLAVE_RUTA = (codigo) => (codigo === '4A' ? 'rutaGuiada4A' : `rutaGuiada${codigo}`)
 
-const leerProgresoRuta = () => {
+const leerProgresoRuta = (claveRuta) => {
   try {
-    const guardado = window.sessionStorage.getItem(CLAVE_RUTA)
+    const guardado = window.sessionStorage.getItem(claveRuta)
     if (!guardado) return null
 
     const progreso = JSON.parse(guardado)
@@ -43,17 +44,17 @@ const leerProgresoRuta = () => {
   }
 }
 
-const guardarProgresoRuta = (progreso) => {
+const guardarProgresoRuta = (progreso, claveRuta) => {
   try {
-    window.sessionStorage.setItem(CLAVE_RUTA, JSON.stringify(progreso))
+    window.sessionStorage.setItem(claveRuta, JSON.stringify(progreso))
   } catch {
     return
   }
 }
 
-const limpiarProgresoRuta = () => {
+const limpiarProgresoRuta = (claveRuta) => {
   try {
-    window.sessionStorage.removeItem(CLAVE_RUTA)
+    window.sessionStorage.removeItem(claveRuta)
   } catch {
     return
   }
@@ -109,12 +110,14 @@ export function montarProblema(vista, { params }) {
     const ejemplos = [...(data.problem_examples ?? [])].sort((a, b) => a.position - b.position)
     const titulo = `${escaparHtml(letra(data.code))}. ${escaparHtml(data.title)}`
     const soluciones = obtenerSolucionesDemostracion(data.code)
+    const contenidoEstatico = obtenerContenidoEstatico(data.code)
+    const claveProgresoRuta = CLAVE_RUTA(data.code.toUpperCase())
     const lenguajeInicial = 'python'
     const solucionInicial = soluciones?.[lenguajeInicial]
-    const esProblemaGuiado = data.code.toUpperCase() === '4A'
+    const esProblemaGuiado = Boolean(contenidoEstatico)
     const mostrarRuta = esProblemaGuiado && seccion !== 'discusion'
 
-    const progresoGuardado = esProblemaGuiado ? leerProgresoRuta() : null
+    const progresoGuardado = esProblemaGuiado ? leerProgresoRuta(claveProgresoRuta) : null
 
     const progresoRuta = progresoGuardado ?? {
       pasoEnunciado: 1,
@@ -147,7 +150,7 @@ export function montarProblema(vista, { params }) {
       }
 
       progresoRuta.lenguaje = lenguajeSeleccionado
-      guardarProgresoRuta(progresoRuta)
+      guardarProgresoRuta(progresoRuta, claveProgresoRuta)
     }
 
     if (mostrarRuta) {
@@ -163,11 +166,24 @@ export function montarProblema(vista, { params }) {
         </div>
       </div>`
 
-    const contenidoEnunciado = `
+    const contenidoEnunciadoOriginal = `
       <h1 class="problema__titulo">${titulo}</h1>
       ${data.summary ? `<p class="problema__resumen">${escaparHtml(data.summary)}</p>` : ''}
       <h2 class="problema__h2">Enunciado</h2>
       <p class="problema__texto">${escaparHtml(data.statement)}</p>
+
+      <div class="problema__entrada-salida">
+        <section class="ejemplo" aria-label="Descripción de la entrada">
+          <h3 class="ejemplo__titulo">Entrada</h3>
+          <p class="ejemplo__exp">${escaparHtml(data.input_description || 'Consulta el formato de entrada indicado en el enunciado.')}</p>
+        </section>
+        <section class="ejemplo" aria-label="Descripción de la salida">
+          <h3 class="ejemplo__titulo">Salida</h3>
+          <p class="ejemplo__exp">${escaparHtml(data.output_description || 'Imprime el resultado solicitado por el problema.')}</p>
+        </section>
+      </div>
+
+      <h2 class="problema__h2">Ejemplo</h2>
       ${ejemplos
         .map(
           (e, i) => `
@@ -186,9 +202,13 @@ export function montarProblema(vista, { params }) {
               ${e.explanation ? `<p class="ejemplo__exp">${escaparHtml(e.explanation)}</p>` : ''}
             </section>`
         )
-        .join('')}`
+        .join('') || '<p class="problema__texto">No hay ejemplos registrados para este problema.</p>'}`
 
-    const contenidoEntender = `
+    const contenidoEnunciado = contenidoEstatico
+      ? `<h1 class="problema__titulo">${titulo}</h1>${renderizarPasoEstatico(data, 1, escaparHtml)}`
+      : contenidoEnunciadoOriginal
+
+    const contenidoEntenderOriginal = `
       <h1 class="problema__titulo">${titulo}</h1>
       <h2 class="problema__h2">Entender el problema</h2>
       <p class="problema__texto">
@@ -240,7 +260,11 @@ export function montarProblema(vista, { params }) {
         corresponde mostrar YES o NO.
       </p>`
 
-    const contenidoDisenar = `
+    const contenidoEntender = contenidoEstatico
+      ? `<h1 class="problema__titulo">${titulo}</h1>${renderizarPasoEstatico(data, 2, escaparHtml)}`
+      : contenidoEntenderOriginal
+
+    const contenidoDisenarOriginal = `
       <h1 class="problema__titulo">${titulo}</h1>
       <h2 class="problema__h2">Diseñar la solución</h2>
       <p class="problema__texto">
@@ -288,6 +312,10 @@ export function montarProblema(vista, { params }) {
           Con 2 kg no es posible.
         </p>
       </section>`
+
+    const contenidoDisenar = contenidoEstatico
+      ? `<h1 class="problema__titulo">${titulo}</h1>${renderizarPasoEstatico(data, 3, escaparHtml)}`
+      : contenidoDisenarOriginal
 
     const contenidoImplementar = `
         <h1 class="problema__titulo">${titulo}</h1>
@@ -479,9 +507,9 @@ export function montarProblema(vista, { params }) {
     }
 
     const contenidoSolucion = esProblemaGuiado
-      ? pasoActual === 5
+      ? pasoActual === 5 && data.code.toUpperCase() === '4A'
         ? crearContenidoVeredicto()
-        : pasoActual === 4
+        : pasoActual === 4 && data.code.toUpperCase() === '4A'
           ? contenidoImplementar
           : contenidoDisenar
       : `
@@ -559,7 +587,7 @@ export function montarProblema(vista, { params }) {
             <a class="btn btn--sm btn--ghost" href="#/problemas">Volver a problemas</a>
           </aside>
 
-          ${mostrarRuta ? crearRutaGuiada(pasoActual) : ''}
+          ${mostrarRuta ? crearRutaGuiada(Math.min(pasoActual, 3)) : ''}
         </div>
       </div>`
 
@@ -588,7 +616,7 @@ export function montarProblema(vista, { params }) {
       })
     }
 
-    if (mostrarRuta && pasoActual === 4) {
+    if (mostrarRuta && pasoActual === 4 && data.code.toUpperCase() === '4A') {
       const selector = main.querySelector('#lenguajeDemostracion')
       const solucion = soluciones?.[lenguajeSeleccionado]
       const tituloCodigo = main.querySelector('#tituloCodigoResuelto')
@@ -612,8 +640,10 @@ export function montarProblema(vista, { params }) {
 
     if (!mostrarRuta) return
 
+    const maximoPaso = data.code.toUpperCase() === '4A' ? 5 : 3
+
     const actualizarPaso = (nuevoPaso) => {
-      if (nuevoPaso < 1 || nuevoPaso > 5 || !main.isConnected) return
+      if (nuevoPaso < 1 || nuevoPaso > maximoPaso || !main.isConnected) return
 
       const nuevaSeccion = nuevoPaso >= 3 ? 'solucion' : ''
 
@@ -635,7 +665,7 @@ export function montarProblema(vista, { params }) {
       }
 
       progresoRuta.lenguaje = lenguajeSeleccionado
-      guardarProgresoRuta(progresoRuta)
+      guardarProgresoRuta(progresoRuta, claveProgresoRuta)
 
       pasoActual = nuevoPaso
       guardarEstadoActual()
@@ -648,11 +678,13 @@ export function montarProblema(vista, { params }) {
         articulo.innerHTML =
           pasoActual === 3
             ? contenidoDisenar
-            : pasoActual === 4
+            : pasoActual === 4 && data.code.toUpperCase() === '4A'
               ? contenidoImplementar
-              : crearContenidoVeredicto()
+              : pasoActual === 5 && data.code.toUpperCase() === '4A'
+                ? crearContenidoVeredicto()
+                : contenidoDisenar
 
-        if (pasoActual === 4) {
+        if (pasoActual === 4 && data.code.toUpperCase() === '4A') {
           const selector = articulo.querySelector('#lenguajeDemostracion')
 
           if (selector) {
@@ -679,7 +711,7 @@ export function montarProblema(vista, { params }) {
       const panelAnterior = main.querySelector('.ruta-guiada')
 
       if (panelAnterior) {
-        panelAnterior.outerHTML = crearRutaGuiada(pasoActual)
+        panelAnterior.outerHTML = crearRutaGuiada(Math.min(pasoActual, 3))
       }
     }
 
@@ -694,18 +726,18 @@ export function montarProblema(vista, { params }) {
         return
       }
 
-      if (accion === 'siguiente' && pasoActual < 4) {
+      if (accion === 'siguiente' && pasoActual < (data.code.toUpperCase() === '4A' ? 4 : 3)) {
         actualizarPaso(pasoActual + 1)
         return
       }
 
-      if (accion === 'enviar' && pasoActual === 4) {
+      if (accion === 'enviar' && pasoActual === 4 && data.code.toUpperCase() === '4A') {
         actualizarPaso(5)
         return
       }
 
       if (accion === 'finalizar' || accion === 'salir') {
-        limpiarProgresoRuta()
+        limpiarProgresoRuta(claveProgresoRuta)
         transicionPendiente = null
         window.location.hash = '#/problemas'
       }
