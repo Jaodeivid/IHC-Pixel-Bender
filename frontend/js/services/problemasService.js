@@ -29,7 +29,7 @@ export const obtenerProblema = (codigo) =>
   supabase
     .from('problems')
     .select(
-      `id, code, title, title_en, summary, statement, rating, time_limit_ms, memory_limit_mb,
+      `id, code, title, title_en, summary, statement, input_description, output_description, rating, time_limit_ms, memory_limit_mb,
        problem_tags ( tags ( name, slug ) ),
        problem_examples ( position, input, output, explanation )`
     )
