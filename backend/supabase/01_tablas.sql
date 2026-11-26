@@ -10,8 +10,10 @@ create table public.profiles (
   username     text not null,
   display_name text,
   avatar_url   text,
+  preferences  jsonb not null default '{}'::jsonb,
   created_at   timestamptz not null default now(),
-  constraint username_format check (username ~ '^[a-z0-9_]{3,20}$')
+  constraint username_format check (username ~ '^[a-z0-9_]{3,20}$'),
+  constraint preferences_objeto check (jsonb_typeof(preferences) = 'object')
 );
 create unique index profiles_username_key on public.profiles (username);
 
@@ -20,8 +22,10 @@ create table public.problems (
   id              bigint generated always as identity primary key,
   code            text not null unique,                       -- p. ej. '4A'
   title           text not null,
+  title_en        text,
+  summary         text,
   statement       text not null,
-  difficulty      text not null check (difficulty in ('facil','media','dificil')),
+  rating          int  not null check (rating between 1 and 5000),
   time_limit_ms   int  not null default 1000 check (time_limit_ms > 0),
   memory_limit_mb int  not null default 256  check (memory_limit_mb > 0),
   created_at      timestamptz not null default now()
@@ -29,7 +33,8 @@ create table public.problems (
 
 create table public.tags (
   id   smallint generated always as identity primary key,
-  name text not null unique
+  name text not null unique,
+  slug text not null unique check (slug ~ '^[a-z0-9]+(-[a-z0-9]+)*$')
 );
 
 -- N a N: un problema tiene varias etiquetas, una etiqueta tiene varios problemas

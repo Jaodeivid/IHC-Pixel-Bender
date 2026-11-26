@@ -38,7 +38,7 @@ if (!estaConfigurado) {
   contarProblemas().then(({ error, count }) =>
     error
       ? console.warn(
-          "Supabase: no se pudo leer la tabla 'problems'. ¿Ejecutaste los SQL 01 al 06?",
+          "Supabase: no se pudo leer la tabla 'problems'. ¿Ejecutaste los SQL 01 al 04?",
           error.message
         )
       : console.info(`Supabase conectado ✓ (${count} problemas)`)
