@@ -114,7 +114,9 @@ export function montarProblema(vista, { params }) {
     const claveProgresoRuta = CLAVE_RUTA(data.code.toUpperCase())
     const lenguajeInicial = 'python'
     const solucionInicial = soluciones?.[lenguajeInicial]
-    const esProblemaGuiado = Boolean(contenidoEstatico)
+    const esSandia = data.code.toUpperCase() === '4A'
+    const maximoPaso = esSandia ? 5 : 3
+    const esProblemaGuiado = esSandia || Boolean(contenidoEstatico)
     const mostrarRuta = esProblemaGuiado && seccion !== 'discusion'
 
     const progresoGuardado = esProblemaGuiado ? leerProgresoRuta(claveProgresoRuta) : null
@@ -587,7 +589,7 @@ export function montarProblema(vista, { params }) {
             <a class="btn btn--sm btn--ghost" href="#/problemas">Volver a problemas</a>
           </aside>
 
-          ${mostrarRuta ? crearRutaGuiada(Math.min(pasoActual, 3)) : ''}
+          ${mostrarRuta ? crearRutaGuiada(pasoActual, maximoPaso) : ''}
         </div>
       </div>`
 
@@ -639,8 +641,6 @@ export function montarProblema(vista, { params }) {
     }
 
     if (!mostrarRuta) return
-
-    const maximoPaso = data.code.toUpperCase() === '4A' ? 5 : 3
 
     const actualizarPaso = (nuevoPaso) => {
       if (nuevoPaso < 1 || nuevoPaso > maximoPaso || !main.isConnected) return
@@ -711,7 +711,7 @@ export function montarProblema(vista, { params }) {
       const panelAnterior = main.querySelector('.ruta-guiada')
 
       if (panelAnterior) {
-        panelAnterior.outerHTML = crearRutaGuiada(Math.min(pasoActual, 3))
+        panelAnterior.outerHTML = crearRutaGuiada(pasoActual, maximoPaso)
       }
     }
 
@@ -726,7 +726,7 @@ export function montarProblema(vista, { params }) {
         return
       }
 
-      if (accion === 'siguiente' && pasoActual < (data.code.toUpperCase() === '4A' ? 4 : 3)) {
+      if (accion === 'siguiente' && pasoActual < maximoPaso) {
         actualizarPaso(pasoActual + 1)
         return
       }
