@@ -16,7 +16,20 @@ const PASOS = [
     titulo: 'Diseñar la solución',
     descripcion: 'Define la estrategia necesaria para resolver el problema.',
     indicacion: 'Organiza el procedimiento antes de escribir el código.'
-  }
+  },
+  {
+  numero: 4,
+  titulo: 'Implementar',
+  descripcion: 'Observa cómo se traduce la condición al lenguaje seleccionado.',
+  indicacion: 'Revisa el código resuelto antes de simular su envío al juez.'
+},
+{
+  numero: 5,
+  titulo: 'Enviar al juez',
+  descripcion:
+    'El envío simulado ha sido evaluado. Revisa el veredicto y los resultados de las pruebas.',
+  indicacion: 'Has completado los cinco pasos de la demostración.'
+}
 ]
 
 export function crearRutaGuiada(numeroPaso = 1) {
